@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import ru.suhanov.dto.ai.gigachat.Chat;
@@ -13,12 +14,11 @@ import ru.suhanov.dto.ai.gigachat.ChatCompletion;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
 import ru.suhanov.dto.ai.gigachat.Message;
 import ru.suhanov.gigachatstarter.config.GigachatStarterConfig;
-import ru.suhanov.gigachatstarter.generator.tooldesc.ToolFinder;
-import ru.suhanov.gigachatstarter.generator.tooldesc.ToolRequestMapper;
+import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder.ToolSpecFinder;
+import ru.suhanov.gigachatstarter.gigachatapimapper.ToolExecutor;
 import ru.suhanov.gigachatstarter.service.GigachatModelImpl;
 
 import java.util.List;
-import java.util.Map;
 
 @SpringBootTest
 @Slf4j
@@ -27,9 +27,10 @@ public class GigachatStarterTest {
     @Autowired
     GigachatModelImpl gigachatModel;
     @Autowired
-    ToolFinder toolFinder;
+    @Qualifier("PropertyToolSpecFinder")
+    ToolSpecFinder toolSpecFinder;
     @Autowired
-    PostaService postaService;
+    ToolExecutor toolExecutor;
 
     @Test
     @SneakyThrows
@@ -43,17 +44,20 @@ public class GigachatStarterTest {
 
         Message userMessage = new Message();
         userMessage.setRole(Message.RoleEnum.USER);
-        userMessage.setContent("Выведи информаци по посылке 1234. Информация а - АТЕСТ, информация б - БТЕСТ.");
+        userMessage.setContent("Выведи информаци по посылке 1234.");
 
-        List<ChatFunctionsInner> chatFunctionsInners = toolFinder.findTools(PostaService.class);
+        List<ChatFunctionsInner> chatFunctionsInners = toolSpecFinder.getToolSpecs(PostaService.class);
         log.info(mapper.writeValueAsString(chatFunctionsInners));
 
         Chat chat = new Chat("GigaChat", List.of(systemMessage, userMessage))
                 .functions(chatFunctionsInners);
 
         ChatCompletion result = gigachatModel.prompt(chat);
-        SendInfoRq sendInfoRq = ToolRequestMapper.mapToObject((Map<String, Object>) ((Map<String, Object>) result.getChoices().get(0).getMessage().getFunctionCall().getArguments()).get("sendInfoRq"), SendInfoRq.class);
-        postaService.getSendInfo(sendInfoRq);
         log.info(result.toString());
+
+        toolExecutor.registerToolClass(PostaService.class);
+        Object sendInfoRq = toolExecutor.execute(result.getChoices().get(0).getMessage().getFunctionCall());
+        log.info(sendInfoRq.toString());
+
     }
 }

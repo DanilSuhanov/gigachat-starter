@@ -1,14 +1,14 @@
-package ru.suhanov.gigachatstarter.generator.tooldesc;
+package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder;
 
-import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
-import ru.suhanov.gigachatstarter.generator.tooldesc.annotation.*;
+import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.AllowedValues;
+import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
+import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
 
 import java.lang.reflect.*;
 import java.util.*;
 
-@Service
-public class ToolFinder {
+public abstract class ToolSpecFinder {
 
     /**
      * Находит все методы, помеченные аннотацией @Tool, и возвращает их описание.
@@ -16,7 +16,7 @@ public class ToolFinder {
      * @param clazz Класс, в котором нужно искать методы.
      * @return Список описаний методов.
      */
-    public List<ChatFunctionsInner> findTools(Class<?> clazz) {
+    public List<ChatFunctionsInner> getToolSpecs(Class<?> clazz) {
         List<ChatFunctionsInner> tools = new ArrayList<>();
 
         for (Method method : clazz.getDeclaredMethods()) {
@@ -26,31 +26,12 @@ public class ToolFinder {
         return tools;
     }
 
-    protected Optional<ChatFunctionsInner> handleMethod(Method method) {
-        if (method.isAnnotationPresent(Tool.class)) {
-            Tool toolAnnotation = method.getAnnotation(Tool.class);
-
-            ChatFunctionsInner toolDescription = new ChatFunctionsInner();
-            toolDescription.setName(toolAnnotation.name());
-            toolDescription.setDescription(toolAnnotation.description());
-
-            // Генерация схемы для параметров
-            Map<String, Object> parametersSchema = generateSchemaForParameters(method);
-            toolDescription.setParameters(parametersSchema);
-
-            // Генерация схемы для возвращаемых значений
-            Map<String, Object> returnParametersSchema = generateSchemaForReturnType(method);
-            toolDescription.setReturnParameters(returnParametersSchema);
-
-            return Optional.of(toolDescription);
-        }
-        return Optional.empty();
-    }
+    protected abstract Optional<ChatFunctionsInner> handleMethod(Method method);
 
     /**
      * Генерирует схему для параметров метода.
      */
-    private Map<String, Object> generateSchemaForParameters(Method method) {
+    protected Map<String, Object> generateSchemaForParameters(Method method) {
         Map<String, Object> schema = new HashMap<>();
         schema.put("type", "object");
 
@@ -58,25 +39,13 @@ public class ToolFinder {
         List<String> required = new ArrayList<>();
 
         for (Parameter param : method.getParameters()) {
-            String paramName = param.getName();
             Class<?> paramType = param.getType();
 
             Map<String, Object> paramSchema = generateSchemaForType(paramType);
 
-            // Добавляем аннотации параметра
-            if (param.isAnnotationPresent(Description.class)) {
-                paramSchema.put("description", param.getAnnotation(Description.class).value());
-            }
-            if (param.isAnnotationPresent(AllowedValues.class)) {
-                paramSchema.put("enum", Arrays.asList(param.getAnnotation(AllowedValues.class).value()));
-            }
+            hadnleParameter(param, paramSchema, required, method.getName());
 
-            properties.put(paramName, paramSchema);
-
-            // Если параметр обязательный, добавляем его в список required
-            if (!param.isAnnotationPresent(NotRequired.class)) {
-                required.add(paramName);
-            }
+            properties.put(param.getName(), paramSchema);
         }
 
         schema.put("properties", properties);
@@ -87,10 +56,12 @@ public class ToolFinder {
         return schema;
     }
 
+    protected abstract void hadnleParameter(Parameter param, Map<String, Object> paramSchema, List<String> required, String methodName);
+
     /**
      * Генерирует схему для возвращаемого типа.
      */
-    private Map<String, Object> generateSchemaForReturnType(Method method) {
+    protected Map<String, Object> generateSchemaForReturnType(Method method) {
         Map<String, Object> schema = generateSchemaForType(method.getReturnType());
 
         // Добавляем обязательные поля для возвращаемого типа
@@ -107,7 +78,7 @@ public class ToolFinder {
     /**
      * Универсальный метод генерации схемы для любого типа.
      */
-    private Map<String, Object> generateSchemaForType(Class<?> type) {
+    protected Map<String, Object> generateSchemaForType(Class<?> type) {
         Map<String, Object> schema = new HashMap<>();
 
         if (isSimpleType(type)) {
@@ -135,17 +106,9 @@ public class ToolFinder {
 
                 Map<String, Object> fieldSchema = generateSchemaForType(fieldType);
 
-                // Добавляем аннотации поля
-                if (field.isAnnotationPresent(Description.class)) {
-                    fieldSchema.put("description", field.getAnnotation(Description.class).value());
-                }
+                handleReturnField(field, fieldSchema, required, fieldName);
 
                 properties.put(fieldName, fieldSchema);
-
-                // Если поле обязательное, добавляем его в список required
-                if (!field.isAnnotationPresent(NotRequired.class)) {
-                    required.add(fieldName);
-                }
             }
 
             schema.put("properties", properties);
@@ -156,6 +119,8 @@ public class ToolFinder {
 
         return schema;
     }
+
+    protected abstract void handleReturnField(Field field, Map<String, Object> fieldSchema, List<String> required, String fieldName);
 
     /**
      * Получает тип элемента для списка или словаря.

@@ -1,0 +1,46 @@
+{
+  "name": "getSendInfo",
+  "description": "Получение информации по посылке",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "sendNum": {
+        "description": "Номер посылки",
+        "type": "string"
+      }
+    },
+    "required": [
+      "sendNum"
+    ]
+  },
+  "few_shot_examples": [],
+  "return_parameters": {
+    "type": "object",
+    "properties": {
+      "additionInfo": {
+        "description": "Дополнительная информация",
+        "type": "object",
+        "properties": {
+          "status": {
+            "description": "Статус",
+            "type": "string"
+          }
+        }
+      },
+      "sendInfo": {
+        "description": "Основная информация",
+        "type": "string"
+      },
+      "strings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    "required": [
+      "sendInfo"
+    ]
+  }
+}

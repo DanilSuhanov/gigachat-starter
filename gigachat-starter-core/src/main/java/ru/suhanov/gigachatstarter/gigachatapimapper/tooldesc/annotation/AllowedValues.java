@@ -1,4 +1,4 @@
-package ru.suhanov.gigachatstarter.generator.tooldesc.annotation;
+package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

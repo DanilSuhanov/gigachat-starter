@@ -1,4 +1,4 @@
-package ru.suhanov.gigachatstarter.generator.fields;
+package ru.suhanov.gigachatstarter.generator;
 
 public interface FieldsGenerator {
     String getType();

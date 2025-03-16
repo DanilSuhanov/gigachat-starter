@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.prop.ToolProperty;
 import ru.suhanov.gigachatstarter.secretholder.fromproperty.AiProperties;
 import ru.suhanov.gigachatstarter.sending.client.prop.SenderProp;
 import org.springframework.core.io.Resource;
@@ -20,7 +21,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
 @Configuration
-@EnableConfigurationProperties({AiProperties.class, SenderProp.class})
+@EnableConfigurationProperties({AiProperties.class, SenderProp.class, ToolProperty.class})
 @ComponentScan("ru.suhanov.gigachatstarter")
 public class GigachatStarterConfig {
     @Value("${webclient.ssl.ca-bundle-file}") // Путь к CA-сертификату из конфигурации

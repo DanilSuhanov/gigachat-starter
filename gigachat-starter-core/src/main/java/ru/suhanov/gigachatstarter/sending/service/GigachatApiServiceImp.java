@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.Chat;
 import ru.suhanov.dto.ai.gigachat.ChatCompletion;
 import ru.suhanov.dto.ai.gigachat.Token;
-import ru.suhanov.gigachatstarter.generator.fields.RqUidGenerator;
+import ru.suhanov.gigachatstarter.generator.RqUidGenerator;
 import ru.suhanov.gigachatstarter.sending.client.SendClient;
 import ru.suhanov.gigachatstarter.sending.client.prop.SenderProp;
 
