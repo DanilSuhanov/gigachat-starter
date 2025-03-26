@@ -8,9 +8,9 @@ import ru.suhanov.dto.ai.gigachat.ChatCompletion;
 import ru.suhanov.gigachatstarter.secretholder.SecretHolder;
 import ru.suhanov.gigachatstarter.sending.service.GigachatApiService;
 
-@Service
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class GigachatModelImpl {
     protected final GigachatApiService apiService;
     protected final SecretHolder secretHolder;

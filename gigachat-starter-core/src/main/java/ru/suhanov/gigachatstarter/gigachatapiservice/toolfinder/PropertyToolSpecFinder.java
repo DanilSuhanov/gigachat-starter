@@ -1,11 +1,11 @@
-package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder;
+package ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.prop.ToolProperty;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Required;
+import ru.suhanov.gigachatstarter.gigachatapiservice.prop.ToolProperty;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -22,7 +22,7 @@ public class PropertyToolSpecFinder extends ToolSpecFinder {
 
     public PropertyToolSpecFinder(ToolProperty property) {
         this.toolProperty = property;
-        this.toolProps = property.getToolProps().stream().collect(Collectors.toMap(ToolProperty.ToolProp::getName, Function.identity()));
+        this.toolProps = property.getToolProps().stream().collect(Collectors.toMap(ToolProperty.ToolProp::getMethodName, Function.identity()));
     }
 
     @Override
@@ -31,7 +31,7 @@ public class PropertyToolSpecFinder extends ToolSpecFinder {
             ToolProperty.ToolProp toolProp = toolProps.get(method.getName());
 
             ChatFunctionsInner toolDescription = new ChatFunctionsInner();
-            toolDescription.setName(method.getName());
+            toolDescription.setName(toolProp.getName());
             toolDescription.setDescription(toolProp.getDescription());
 
             // Генерация схемы для параметров

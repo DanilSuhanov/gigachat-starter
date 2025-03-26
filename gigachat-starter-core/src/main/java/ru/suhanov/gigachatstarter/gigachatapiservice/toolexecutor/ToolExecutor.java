@@ -1,17 +1,21 @@
-package ru.suhanov.gigachatstarter.gigachatapimapper;
+package ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor;
 
+import lombok.RequiredArgsConstructor;
 import ru.suhanov.dto.ai.gigachat.MessagesResFunctionCall;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Tool;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Tool;
 import org.springframework.stereotype.Service;
+import ru.suhanov.gigachatstarter.gigachatapiservice.prop.ToolProperty;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
-public class ToolExecutor {
+@RequiredArgsConstructor
+public abstract class ToolExecutor {
 
     private final Map<String, Method> toolMethods = new HashMap<>();
     private final Map<String, Object> toolInstances = new HashMap<>();
@@ -25,16 +29,17 @@ public class ToolExecutor {
         try {
             Object instance = clazz.getDeclaredConstructor().newInstance();
             for (Method method : clazz.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(Tool.class)) {
-                    Tool toolAnnotation = method.getAnnotation(Tool.class);
-                    toolMethods.put(toolAnnotation.name(), method);
-                    toolInstances.put(toolAnnotation.name(), instance);
-                }
+                getToolNameIfMethodIsTool(method).ifPresent(toolName -> {
+                    toolMethods.put(toolName, method);
+                    toolInstances.put(toolName, instance);
+                });
             }
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при регистрации класса с инструментами", e);
         }
     }
+
+    protected abstract Optional<String> getToolNameIfMethodIsTool(Method method);
 
     /**
      * Выполняет метод, соответствующий имени функции в MessagesResFunctionCall.
@@ -43,7 +48,7 @@ public class ToolExecutor {
      * @return Результат выполнения метода.
      */
     public Object execute(MessagesResFunctionCall functionCall) {
-        String functionName = functionCall.getName();
+        String functionName = getMethodName(functionCall);
         Object arguments = functionCall.getArguments();
 
         if (!toolMethods.containsKey(functionName)) {
@@ -66,6 +71,8 @@ public class ToolExecutor {
             throw new RuntimeException("Ошибка при выполнении метода " + functionName, e);
         }
     }
+
+    protected abstract String getMethodName(MessagesResFunctionCall functionCall);
 
     /**
      * Подготавливает аргументы для вызова метода.

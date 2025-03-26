@@ -1,4 +1,4 @@
-package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.prop;
+package ru.suhanov.gigachatstarter.gigachatapiservice.prop;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,6 +17,7 @@ public class ToolProperty {
     @Data
     public static class ToolProp {
         private String name;
+        private String methodName;
         private String description;
 
         private List<ParameterProp> parametersProps;

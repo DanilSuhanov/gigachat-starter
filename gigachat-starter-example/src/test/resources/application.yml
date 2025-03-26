@@ -1,0 +1,19 @@
+tool:
+  toolProps:
+    - name: Получение информации по посылке
+      methodName: getSendInfo
+      description: Получение информации по посылке
+      parametersProps:
+        - name: sendNum
+          description: Номер посылки
+  returnObjectFieldDescMap:
+    additionInfo: Дополнительная информация
+    sendInfo: Основная информация
+    status: Статус
+
+ai:
+  authorizationKey: MTIxN2U4MzMtMjNjOC00ZWY4LThmOWItZTZjYzUwZTlhOGI4OjJlMzRjZWM5LTM4MjUtNGVhZS05N2NhLTY3M2UxNmFiNzQ1MQ==
+
+sender-client:
+  senderCertProp:
+    caBundleFile: G:\russian_trusted_root_ca.cer

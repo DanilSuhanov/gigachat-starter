@@ -1,9 +1,6 @@
-package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder;
+package ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder;
 
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.AllowedValues;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
 
 import java.lang.reflect.*;
 import java.util.*;

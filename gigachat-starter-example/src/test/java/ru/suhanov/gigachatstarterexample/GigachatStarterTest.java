@@ -14,8 +14,8 @@ import ru.suhanov.dto.ai.gigachat.ChatCompletion;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
 import ru.suhanov.dto.ai.gigachat.Message;
 import ru.suhanov.gigachatstarter.config.GigachatStarterConfig;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder.ToolSpecFinder;
-import ru.suhanov.gigachatstarter.gigachatapimapper.ToolExecutor;
+import ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder.ToolSpecFinder;
+import ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor.ToolExecutor;
 import ru.suhanov.gigachatstarter.service.GigachatModelImpl;
 
 import java.util.List;
@@ -30,6 +30,7 @@ public class GigachatStarterTest {
     @Qualifier("PropertyToolSpecFinder")
     ToolSpecFinder toolSpecFinder;
     @Autowired
+    @Qualifier("PropertyToolExecutor")
     ToolExecutor toolExecutor;
 
     @Test

@@ -48,16 +48,13 @@ public class SendClient implements HttpSendClient {
     }
 
     protected <R> HttpResult<R> requestHttp(String body, Class<R> resultType, Map<String, String> headers, URI uri, HttpMethod httpMethod) {
-        // Создаем Request.Builder
         Request.Builder requestBuilder = new Request.Builder()
                 .url(uri.toString());
 
-        // Добавляем заголовки
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             requestBuilder.addHeader(entry.getKey(), entry.getValue());
         }
 
-        // Устанавливаем метод и тело запроса
         if (httpMethod == HttpMethod.GET) {
             requestBuilder.get();
         } else {
@@ -65,14 +62,11 @@ public class SendClient implements HttpSendClient {
             requestBuilder.method(httpMethod.name(), requestBody);
         }
 
-        // Выполняем запрос
         try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
-            // Проверяем, что ответ не null
             if (response.body() == null) {
                 throw new SenderException("Ошибка: тело ответа отсутствует.");
             }
 
-            // Получаем тело ответа
             String responseBody = response.body().string();
 
             log.info("Тело ответа:");
@@ -80,12 +74,10 @@ public class SendClient implements HttpSendClient {
             log.info("Заголовки ответа - {}", response.headers().toMultimap());
             log.info("Статус код - {}", response.code());
 
-            // Проверка статуса ответа
             if (prop.getSenderCheckProp().getCheckStatus() && response.code() != prop.getSenderCheckProp().getSuccessStatus()) {
                 throw new SenderException("Ошибка обработки ответа. Неверный статус код.");
             }
 
-            // Десериализация тела ответа
             HttpResult<R> result = new HttpResult<>();
             result.setStatusCode(response.code());
             result.setHeaders(response.headers().toMultimap());

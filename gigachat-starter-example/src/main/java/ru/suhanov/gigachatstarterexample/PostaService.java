@@ -1,9 +1,9 @@
 package ru.suhanov.gigachatstarterexample;
 
 import org.springframework.stereotype.Service;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Tool;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Required;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Tool;
 
 @Service
 public class PostaService {

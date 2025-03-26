@@ -3,8 +3,8 @@ package ru.suhanov.gigachatstarterexample;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Required;
 
 import java.util.List;
 

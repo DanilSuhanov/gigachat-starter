@@ -1,13 +1,13 @@
-package ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.toolfinder;
+package ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.AllowedValues;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Required;
-import ru.suhanov.gigachatstarter.gigachatapimapper.tooldesc.annotation.Tool;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.AllowedValues;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Required;
+import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Tool;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

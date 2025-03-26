@@ -1,8 +1,7 @@
 package ru.suhanov.gigachatstarter.sending.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.Chat;
@@ -10,7 +9,6 @@ import ru.suhanov.dto.ai.gigachat.ChatCompletion;
 import ru.suhanov.dto.ai.gigachat.Token;
 import ru.suhanov.gigachatstarter.generator.RqUidGenerator;
 import ru.suhanov.gigachatstarter.sending.client.SendClient;
-import ru.suhanov.gigachatstarter.sending.client.prop.SenderProp;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -18,16 +16,11 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class GigachatApiServiceImp extends SendClient implements GigachatApiService {
+@RequiredArgsConstructor
+public class GigachatApiServiceImp  implements GigachatApiService {
     protected final RqUidGenerator rqUidGenerator;
-
-    public GigachatApiServiceImp(OkHttpClient okHttpClient,
-                                 ObjectMapper objectMapper,
-                                 SenderProp prop,
-                                 RqUidGenerator rqUidGenerator) {
-        super(okHttpClient, objectMapper, prop);
-        this.rqUidGenerator = rqUidGenerator;
-    }
+    protected final SendClient sendClient;
+    protected final SendClient sendClientForTokenGet;
 
 
     @Override
@@ -38,7 +31,7 @@ public class GigachatApiServiceImp extends SendClient implements GigachatApiServ
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("Accept", "application/json");
 
-        return request(scope, Token.class, headers, URI.create("https://ngw.devices.sberbank.ru:9443/api/v2/oauth"), HttpMethod.POST).getBody();
+        return sendClientForTokenGet.request(scope, Token.class, headers, URI.create("https://ngw.devices.sberbank.ru:9443/api/v2/oauth"), HttpMethod.POST).getBody();
     }
 
     @Override
@@ -48,6 +41,6 @@ public class GigachatApiServiceImp extends SendClient implements GigachatApiServ
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("Accept", "application/json");
 
-        return request(chat, ChatCompletion.class, headers, URI.create("https://gigachat.devices.sberbank.ru/api/v1/chat/completions"), HttpMethod.POST).getBody();
+        return sendClient.request(chat, ChatCompletion.class, headers, URI.create("https://gigachat.devices.sberbank.ru/api/v1/chat/completions"), HttpMethod.POST).getBody();
     }
 }

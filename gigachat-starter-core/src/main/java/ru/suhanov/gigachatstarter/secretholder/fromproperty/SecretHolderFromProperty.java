@@ -19,7 +19,9 @@ public class SecretHolderFromProperty implements SecretHolder {
         this.apiService = apiService;
         this.aiProperties = aiProperties;
         if (aiProperties.getToken() != null) {
-            token = new Token().accessToken(aiProperties.getToken()).expiresAt(Instant.now().plusSeconds(60 * 60 * 3).getEpochSecond());
+            token = new Token().accessToken(aiProperties.getToken()).expiresAt(Instant.now().plusSeconds(60 * 30).getEpochSecond());
+        } else {
+            updateToken();
         }
     }
 
