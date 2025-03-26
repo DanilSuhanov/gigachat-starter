@@ -69,7 +69,11 @@ public class PropertyToolSpecFinder extends ToolSpecFinder {
     @Override
     protected void handleReturnField(Field field, Map<String, Object> fieldSchema, List<String> required, String fieldName) {
         if (field.isAnnotationPresent(Description.class)) {
-            fieldSchema.put("description", toolProperty.getReturnObjectFieldDescMap().get(field.getAnnotation(Description.class).value()));
+            String descValue = field.getAnnotation(Description.class).value();
+            if (descValue != null)
+                fieldSchema.put("description", toolProperty.getReturnObjectFieldDescMap().get(field.getAnnotation(Description.class).value()));
+            else
+                fieldSchema.put("description", toolProperty.getReturnObjectFieldDescMap().get(field.getName()));
         }
         if (field.isAnnotationPresent(Required.class)) {
             required.add(fieldName);
