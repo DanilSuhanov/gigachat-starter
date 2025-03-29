@@ -2,6 +2,7 @@ package ru.suhanov.gigachatstarter.sending.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.Chat;
@@ -17,7 +18,8 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GigachatApiServiceImp  implements GigachatApiService {
+@ConditionalOnProperty(name = "tool.toolWrapProp.msType", havingValue = "AGENT")
+public class GigachatApiServiceImp implements GigachatApiService {
     protected final RqUidGenerator rqUidGenerator;
     protected final SendClient sendClient;
     protected final SendClient sendClientForTokenGet;

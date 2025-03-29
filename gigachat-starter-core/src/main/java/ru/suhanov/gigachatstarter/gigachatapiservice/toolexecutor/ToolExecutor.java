@@ -1,15 +1,16 @@
 package ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import ru.suhanov.dto.ai.gigachat.MessagesResFunctionCall;
-import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Tool;
 import org.springframework.stereotype.Service;
-import ru.suhanov.gigachatstarter.gigachatapiservice.prop.ToolProperty;
+import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.toolProvider.AvailableForToolParse;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -19,6 +20,13 @@ public abstract class ToolExecutor {
 
     private final Map<String, Method> toolMethods = new HashMap<>();
     private final Map<String, Object> toolInstances = new HashMap<>();
+
+    protected final List<AvailableForToolParse> toolClasses;
+
+    @PostConstruct
+    public void loadTool() {
+        toolClasses.forEach(toolClass -> registerToolClass(toolClass.getClass()));
+    }
 
     /**
      * Регистрирует класс с методами, помеченными аннотацией @Tool.
@@ -55,15 +63,19 @@ public abstract class ToolExecutor {
             throw new IllegalArgumentException("Метод с именем " + functionName + " не найден");
         }
 
-        Method method = toolMethods.get(functionName);
-        Object instance = toolInstances.get(functionName);
+        return execute(functionName, (Map<String, Object>) arguments);
+    }
 
+    protected Object execute(String functionName, Map<String, Object> arguments) {
         try {
-            // Преобразуем аргументы в Map<String, Object>
-            Map<String, Object> argsMap = (Map<String, Object>) arguments;
+            Method method = toolMethods.get(functionName);
+            Object instance = toolInstances.get(functionName);
 
             // Преобразуем Map в массив объектов для вызова метода
-            Object[] methodArgs = prepareMethodArguments(method, argsMap);
+            Object[] methodArgs = prepareMethodArguments(
+                    method,
+                    arguments
+            );
 
             // Вызываем метод
             return method.invoke(instance, methodArgs);

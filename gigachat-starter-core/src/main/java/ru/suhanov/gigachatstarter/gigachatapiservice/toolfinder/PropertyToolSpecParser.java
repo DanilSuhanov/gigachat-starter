@@ -1,6 +1,7 @@
 package ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
 import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
@@ -16,11 +17,12 @@ import java.util.stream.Collectors;
 
 @Service("PropertyToolSpecFinder")
 @Slf4j
-public class PropertyToolSpecFinder extends ToolSpecFinder {
+@ConditionalOnProperty(value = "tool.toolParsingMode", havingValue = "PROPERTY")
+public class PropertyToolSpecParser extends ToolSpecParser {
     private final ToolProperty toolProperty;
     private final Map<String, ToolProperty.ToolProp> toolProps;
 
-    public PropertyToolSpecFinder(ToolProperty property) {
+    public PropertyToolSpecParser(ToolProperty property) {
         this.toolProperty = property;
         this.toolProps = property.getToolProps().stream().collect(Collectors.toMap(ToolProperty.ToolProp::getMethodName, Function.identity()));
     }

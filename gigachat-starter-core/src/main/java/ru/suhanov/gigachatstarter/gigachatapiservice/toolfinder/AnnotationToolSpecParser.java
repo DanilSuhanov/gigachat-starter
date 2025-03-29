@@ -2,6 +2,7 @@ package ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
 import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.AllowedValues;
@@ -20,7 +21,8 @@ import java.util.Optional;
 @Service("AnnotationToolSpecFinder")
 @RequiredArgsConstructor
 @Slf4j
-public class AnnotationToolSpecFinder extends ToolSpecFinder {
+@ConditionalOnProperty(value = "tool.toolParsingMode", havingValue = "ANNOTATION")
+public class AnnotationToolSpecParser extends ToolSpecParser {
 
     @Override
     protected Optional<ChatFunctionsInner> handleMethod(Method method) {

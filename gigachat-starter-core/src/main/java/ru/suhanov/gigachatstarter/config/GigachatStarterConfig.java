@@ -2,10 +2,13 @@ package ru.suhanov.gigachatstarter.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.pem.util.PemUtils;
 import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.suhanov.gigachatstarter.gigachatapiservice.prop.ToolProperty;
 import ru.suhanov.gigachatstarter.secretholder.fromproperty.AiProperties;
 import ru.suhanov.gigachatstarter.sending.client.SendClient;
-import ru.suhanov.gigachatstarter.sending.client.prop.SenderProp;
+import ru.suhanov.gigachatstarter.sending.prop.SenderProp;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -26,8 +29,8 @@ import java.nio.file.Paths;
 @ComponentScan("ru.suhanov.gigachatstarter")
 public class GigachatStarterConfig {
 
-    @Bean
-    public OkHttpClient okHttpClient(SenderProp senderProp) throws Exception {
+    @Bean("fullCertClient")
+    public OkHttpClient fullCertClient(SenderProp senderProp) {
         SenderProp.SenderCertProp certProp = senderProp.getSenderCertProp();
         OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
                 .callTimeout(senderProp.getTimeout())
@@ -53,8 +56,8 @@ public class GigachatStarterConfig {
         return okBuilder.build();
     }
 
-    @Bean
-    public SendClient sendClientForTokenGet(ObjectMapper objectMapper, SenderProp prop) {
+    @Bean("certClient")
+    public OkHttpClient certClient(SenderProp prop) {
         SenderProp.SenderCertProp certProp = prop.getSenderCertProp();
         OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
                 .callTimeout(prop.getTimeout())
@@ -68,6 +71,23 @@ public class GigachatStarterConfig {
             okBuilder.sslSocketFactory(sslFactory.getSslSocketFactory(), sslFactory.getTrustManager().get());
         }
 
-        return new SendClient(okBuilder.build(), objectMapper, prop);
+        return okBuilder.build();
+    }
+
+    @Bean("sendClient")
+    @ConditionalOnBean(name = {"fullCertClient"})
+    public SendClient sendClient(@Qualifier("fullCertClient") OkHttpClient okHttpClient, ObjectMapper objectMapper, SenderProp prop) {
+        return new SendClient(okHttpClient, objectMapper, prop);
+    }
+
+    @Bean("sendClientForTokenGet")
+    @ConditionalOnBean(name = {"certClient"})
+    public SendClient sendClientForTokenGet(@Qualifier("certClient") OkHttpClient okHttpClient, ObjectMapper objectMapper, SenderProp prop) {
+        return new SendClient(okHttpClient, objectMapper, prop);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     }
 }

@@ -1,22 +1,24 @@
 package ru.suhanov.gigachatstarterexample;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import ru.suhanov.dto.ai.gigachat.Chat;
-import ru.suhanov.dto.ai.gigachat.ChatCompletion;
-import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
-import ru.suhanov.dto.ai.gigachat.Message;
+import ru.suhanov.dto.ai.gigachat.*;
 import ru.suhanov.gigachatstarter.config.GigachatStarterConfig;
-import ru.suhanov.gigachatstarter.gigachatapiservice.toolfinder.ToolSpecFinder;
+import ru.suhanov.gigachatstarter.gigachatapiservice.history.History;
 import ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor.ToolExecutor;
-import ru.suhanov.gigachatstarter.service.GigachatModelImpl;
+import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.ToolWrapperHttp;
+import ru.suhanov.gigachatstarter.service.GigachatModelLocalImpl;
+import ru.suhanov.gigachatstarter.springai.GigachatModel;
 
 import java.util.List;
 
@@ -25,40 +27,49 @@ import java.util.List;
 @Import(GigachatStarterConfig.class)
 public class GigachatStarterTest {
     @Autowired
-    GigachatModelImpl gigachatModel;
+    GigachatModelLocalImpl gigachatModel;
     @Autowired
-    @Qualifier("PropertyToolSpecFinder")
-    ToolSpecFinder toolSpecFinder;
+    ToolWrapperHttp toolWrapperHttp;
     @Autowired
-    @Qualifier("PropertyToolExecutor")
     ToolExecutor toolExecutor;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    GigachatModel springGigachatModel;
 
     @Test
     @SneakyThrows
-    void test() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    void localApiTest() {
+        History history = new History("Ты почтальон.")
+                .addUserMessage("Выведи информацию по посылке 1234");
 
-        Message systemMessage = new Message();
-        systemMessage.setRole(Message.RoleEnum.SYSTEM);
-        systemMessage.setContent("Ты почтальон.");
+        List<ChatFunctionsInner> chatFunctionsInners = toolWrapperHttp.getTools();
+        log.info(objectMapper.writeValueAsString(chatFunctionsInners));
 
-        Message userMessage = new Message();
-        userMessage.setRole(Message.RoleEnum.USER);
-        userMessage.setContent("Выведи информаци по посылке 1234.");
-
-        List<ChatFunctionsInner> chatFunctionsInners = toolSpecFinder.getToolSpecs(PostaService.class);
-        log.info(mapper.writeValueAsString(chatFunctionsInners));
-
-        Chat chat = new Chat("GigaChat", List.of(systemMessage, userMessage))
-                .functions(chatFunctionsInners);
-
+        Chat chat = new Chat("GigaChat", history.getMessages()).functions(chatFunctionsInners);
         ChatCompletion result = gigachatModel.prompt(chat);
         log.info(result.toString());
 
-        toolExecutor.registerToolClass(PostaService.class);
-        Object sendInfoRq = toolExecutor.execute(result.getChoices().get(0).getMessage().getFunctionCall());
-        log.info(sendInfoRq.toString());
+        MessagesRes messagesRes = result.getChoices().get(0).getMessage();
+        history.addAiMessage(messagesRes, result.getChoices().get(0).getFinishReason(), objectMapper);
 
+        toolExecutor.registerToolClass(PostaService.class);
+        Object sendRs = toolExecutor.execute(messagesRes.getFunctionCall());
+        log.info(sendRs.toString());
+
+        history.addToolResult(sendRs, objectMapper);
+
+        chat = new Chat("GigaChat", history.getMessages()).functions(chatFunctionsInners);
+        result = gigachatModel.prompt(chat);
+        log.info(result.toString());
+    }
+
+    @Test
+    void springAiTest() {
+        Prompt prompt = new Prompt(new SystemMessage("Ты почтальон."), new UserMessage("Выведи информацию по посылке 1234"));
+        ChatResponse result = springGigachatModel.call(prompt);
+        log.info(result.getResults().get(0).getOutput().getText());
     }
 }

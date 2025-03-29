@@ -5,7 +5,7 @@ import ru.suhanov.dto.ai.gigachat.ChatFunctionsInner;
 import java.lang.reflect.*;
 import java.util.*;
 
-public abstract class ToolSpecFinder {
+public abstract class ToolSpecParser {
 
     /**
      * Находит все методы, помеченные аннотацией @Tool, и возвращает их описание.

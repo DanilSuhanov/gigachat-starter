@@ -1,4 +1,4 @@
-package ru.suhanov.gigachatstarter.sending.client.prop;
+package ru.suhanov.gigachatstarter.sending.prop;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

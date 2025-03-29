@@ -11,6 +11,9 @@ import java.util.Map;
 @Data
 @ConfigurationProperties("tool")
 public class ToolProperty {
+    private ToolParsingMode toolParsingMode;
+
+    private ToolWrapProp toolWrapProp = new ToolWrapProp();
     private List<ToolProp> toolProps = new ArrayList<>();
     private Map<String, String> returnObjectFieldDescMap = new HashMap<>();
 
@@ -19,6 +22,7 @@ public class ToolProperty {
         private String name;
         private String methodName;
         private String description;
+        private ToolSource source = ToolSource.LOCAL;
 
         private List<ParameterProp> parametersProps;
 
@@ -29,5 +33,26 @@ public class ToolProperty {
             private boolean required = true;
             private List<String> allowValues;
         }
+
+        public enum ToolSource {
+            LOCAL,
+            REMOTE
+        }
+    }
+
+    @Data
+    public static class ToolWrapProp {
+        private MSType msType;
+        private List<String> toolProvidersUrl = new ArrayList<>();
+
+        public enum MSType {
+            AGENT,
+            TOOL_PROVIDER
+        }
+    }
+
+    public enum ToolParsingMode {
+        PROPERTY,
+        ANNOTATION
     }
 }

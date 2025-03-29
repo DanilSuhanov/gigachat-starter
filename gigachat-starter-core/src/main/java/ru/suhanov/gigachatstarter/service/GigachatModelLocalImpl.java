@@ -2,6 +2,7 @@ package ru.suhanov.gigachatstarter.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.Chat;
 import ru.suhanov.dto.ai.gigachat.ChatCompletion;
@@ -11,7 +12,8 @@ import ru.suhanov.gigachatstarter.sending.service.GigachatApiService;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class GigachatModelImpl {
+@ConditionalOnBean(GigachatApiService.class)
+public class GigachatModelLocalImpl {
     protected final GigachatApiService apiService;
     protected final SecretHolder secretHolder;
 

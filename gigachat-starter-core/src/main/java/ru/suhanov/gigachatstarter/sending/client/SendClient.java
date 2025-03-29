@@ -5,17 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Service;
 import ru.suhanov.gigachatstarter.sending.client.exception.SenderException;
 import ru.suhanov.gigachatstarter.sending.client.model.HttpResult;
-import ru.suhanov.gigachatstarter.sending.client.prop.SenderProp;
+import ru.suhanov.gigachatstarter.sending.prop.SenderProp;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
-@Service
 @Slf4j
 @RequiredArgsConstructor
 public class SendClient implements HttpSendClient {
@@ -28,6 +27,16 @@ public class SendClient implements HttpSendClient {
         try {
             String requestBody = requestPrepare(request, headers);
             return requestHttp(requestBody, resultType, headers, uri, httpMethod);
+        } catch (Exception e) {
+            throw new SenderException(e);
+        }
+    }
+
+    @Override
+    public <R> HttpResult<R> requestGet(Class<R> resultType, Map<String, String> headers, URI uri) {
+        try {
+            log.info("Заголовки запроса - {}", headers);
+            return requestHttpGet(resultType, headers, uri);
         } catch (Exception e) {
             throw new SenderException(e);
         }
@@ -47,6 +56,23 @@ public class SendClient implements HttpSendClient {
         return requestBody;
     }
 
+    protected <R> HttpResult<R> requestHttpGet(Class<R> resultType, Map<String, String> headers, URI uri) {
+        Request.Builder requestBuilder = new Request.Builder()
+                .url(uri.toString())
+                .get();
+
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            requestBuilder.addHeader(entry.getKey(), entry.getValue());
+        }
+
+        try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
+            return requestPostHandle(resultType, response);
+        } catch (IOException e) {
+            log.error("Ошибка при выполнении запроса: {}", e.toString());
+            throw new SenderException("Ошибка при выполнении запроса.", e);
+        }
+    }
+
     protected <R> HttpResult<R> requestHttp(String body, Class<R> resultType, Map<String, String> headers, URI uri, HttpMethod httpMethod) {
         Request.Builder requestBuilder = new Request.Builder()
                 .url(uri.toString());
@@ -63,35 +89,39 @@ public class SendClient implements HttpSendClient {
         }
 
         try (Response response = okHttpClient.newCall(requestBuilder.build()).execute()) {
-            if (response.body() == null) {
-                throw new SenderException("Ошибка: тело ответа отсутствует.");
-            }
-
-            String responseBody = response.body().string();
-
-            log.info("Тело ответа:");
-            log.info(responseBody);
-            log.info("Заголовки ответа - {}", response.headers().toMultimap());
-            log.info("Статус код - {}", response.code());
-
-            if (prop.getSenderCheckProp().getCheckStatus() && response.code() != prop.getSenderCheckProp().getSuccessStatus()) {
-                throw new SenderException("Ошибка обработки ответа. Неверный статус код.");
-            }
-
-            HttpResult<R> result = new HttpResult<>();
-            result.setStatusCode(response.code());
-            result.setHeaders(response.headers().toMultimap());
-
-            try {
-                result.setBody(resultType.equals(String.class) ? (R) responseBody : objectMapper.readValue(responseBody, resultType));
-            } catch (JsonProcessingException e) {
-                throw new SenderException("Ошибка при десериализации ответа.", e);
-            }
-
-            return result;
+            return requestPostHandle(resultType, response);
         } catch (IOException e) {
             log.error("Ошибка при выполнении запроса: {}", e.toString());
             throw new SenderException("Ошибка при выполнении запроса.", e);
         }
+    }
+
+    protected <R> HttpResult<R> requestPostHandle(Class<R> resultType, Response response) throws IOException {
+        if (response.body() == null) {
+            throw new SenderException("Ошибка: тело ответа отсутствует.");
+        }
+
+        String responseBody = response.body().string();
+
+        log.info("Тело ответа:");
+        log.info(responseBody);
+        log.info("Заголовки ответа - {}", response.headers().toMultimap());
+        log.info("Статус код - {}", response.code());
+
+        if (prop.getSenderCheckProp().getCheckStatus() && response.code() != prop.getSenderCheckProp().getSuccessStatus()) {
+            throw new SenderException("Ошибка обработки ответа. Неверный статус код.");
+        }
+
+        HttpResult<R> result = new HttpResult<>();
+        result.setStatusCode(response.code());
+        result.setHeaders(response.headers().toMultimap());
+
+        try {
+            result.setBody(resultType.equals(String.class) ? (R) responseBody : objectMapper.readValue(responseBody, resultType));
+        } catch (JsonProcessingException e) {
+            throw new SenderException("Ошибка при десериализации ответа.", e);
+        }
+
+        return result;
     }
 }
