@@ -1,17 +1,14 @@
 package ru.suhanov.gigachatstarterexample;
 
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
-import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Description;
-import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Required;
-import ru.suhanov.gigachatstarter.gigachatapiservice.annotation.Tool;
-import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.toolProvider.AvailableForToolParse;
 
 @Service
-public class PostaService implements AvailableForToolParse {
+public class PostaService {
 
-    @Tool(name = "getSendInfo", description = "Получение информации по посылке")
+    @Tool
     public SendInfoRs getSendInfo(
-            @Description("Номер посылки") @Required String sendNum
+            String sendNum
     ) {
         return new SendInfoRs(new SendInfoRs.AdditionInfo("SUCCESS"), "send is ok", null);
     }

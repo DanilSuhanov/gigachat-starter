@@ -9,16 +9,16 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.*;
 import ru.suhanov.gigachatstarter.gigachatapiservice.history.History;
 import ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor.ToolExecutor;
-import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.ToolWrapper;
 import ru.suhanov.gigachatstarter.service.GigachatModelLocalImpl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 public class GigachatModel implements ChatModel {
     protected final GigachatModelLocalImpl gigachatModel;
     protected final MessageConverter messageConverter;
-    protected final ToolWrapper toolWrapper;
     protected final ToolExecutor toolExecutor;
     protected final ObjectMapper objectMapper;
 
@@ -41,7 +40,16 @@ public class GigachatModel implements ChatModel {
             String chatModel = prompt.getOptions() != null ? prompt.getOptions().getModel() : null;
             if (chatModel == null)
                 chatModel = "GigaChat";
-            Chat chat = new Chat(chatModel, history.getMessages()).functions(toolWrapper.getTools());
+            Chat chat = new Chat(chatModel, history.getMessages());
+
+            if (prompt.getOptions() instanceof ToolCallingChatOptions toolOption) {
+                chat.setFunctions(toolOption.getToolCallbacks().stream().map(toolOpt -> {
+                    ChatFunctionsInner chatFunctionsInner = new ChatFunctionsInner(toolOpt.getName(), toolOpt.getInputTypeSchema());
+                    chatFunctionsInner.setDescription(toolOpt.getDescription());
+                    return chatFunctionsInner;
+                }).collect(Collectors.toList()));
+            }
+
             ChatCompletion response = gigachatModel.prompt(chat);
             Choices choices = response.getChoices().get(0);
             history.addAiMessage(choices.getMessage(), choices.getFinishReason(), objectMapper);

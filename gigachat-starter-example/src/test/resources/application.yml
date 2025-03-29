@@ -1,4 +1,7 @@
 tool:
+  toolParsingMode: PROPERTY
+  toolWrapProp:
+    msType: AGENT
   toolProps:
     - name: Получение информации по посылке
       methodName: getSendInfo

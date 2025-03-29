@@ -6,9 +6,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import ru.suhanov.dto.ai.gigachat.MessagesResFunctionCall;
 import ru.suhanov.gigachatstarter.gigachatapiservice.prop.ToolProperty;
-import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.toolProvider.AvailableForToolParse;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +18,7 @@ import java.util.Optional;
 public class PropertyToolExecutor extends ToolExecutor {
     protected final ToolProperty toolProperty;
 
-    public PropertyToolExecutor(List<AvailableForToolParse> toolClasses, ToolProperty toolProperty) {
-        super(toolClasses);
+    public PropertyToolExecutor(ToolProperty toolProperty) {
         this.toolProperty = toolProperty;
     }
 

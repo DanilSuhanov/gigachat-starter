@@ -1,16 +1,13 @@
 package ru.suhanov.gigachatstarter.gigachatapiservice.toolexecutor;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import ru.suhanov.dto.ai.gigachat.MessagesResFunctionCall;
 import org.springframework.stereotype.Service;
-import ru.suhanov.gigachatstarter.gigachatapiservice.toolwrapper.toolProvider.AvailableForToolParse;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,14 +17,6 @@ public abstract class ToolExecutor {
 
     private final Map<String, Method> toolMethods = new HashMap<>();
     private final Map<String, Object> toolInstances = new HashMap<>();
-
-    protected final List<AvailableForToolParse> toolClasses;
-
-    @PostConstruct
-    public void loadTool() {
-        toolClasses.forEach(toolClass -> registerToolClass(toolClass.getClass()));
-    }
-
     /**
      * Регистрирует класс с методами, помеченными аннотацией @Tool.
      *
